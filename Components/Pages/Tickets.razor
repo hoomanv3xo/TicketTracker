@@ -1,0 +1,48 @@
+﻿@page "/tickets"
+@using Microsoft.EntityFrameworkCore
+@using TicketTracker.Data
+@inject IDbContextFactory<AppDbContext> Factory
+
+<PageTitle>Tickets</PageTitle>
+<h3>Tickets</h3>
+
+<select @bind="statusFilter" @bind:after="LoadAsync">
+    <option value="">All</option>
+    @foreach (var s in Enum.GetValues<TicketStatus>())
+    {
+        <option value="@s">@s</option>
+    }
+</select>
+
+<table class="table">
+    <thead>
+        <tr><th>Title</th><th>Status</th><th>Priority</th><th>Created</th></tr>
+    </thead>
+    <tbody>
+        @foreach (var t in tickets)
+        {
+            <tr>
+                <td>@t.Title</td>
+                <td>@t.Status</td>
+                <td>@t.Priority</td>
+                <td>@t.CreatedAt.ToString("yyyy-MM-dd")</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    private List<Ticket> tickets = new();
+    private string statusFilter = "";
+
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        using var db = Factory.CreateDbContext();
+        var query = db.Tickets.AsQueryable();
+        if (Enum.TryParse<TicketStatus>(statusFilter, out var s))
+            query = query.Where(t => t.Status == s);
+        tickets = await query.OrderByDescending(t => t.CreatedAt).ToListAsync();
+    }
+}

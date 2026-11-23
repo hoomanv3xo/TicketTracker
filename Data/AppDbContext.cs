@@ -1,0 +1,20 @@
+﻿using Microsoft.EntityFrameworkCore;
+using TicketTracker.Models;
+
+namespace TicketTracker.Data;
+
+public class AppDbContext : DbContext
+{
+    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+
+    public DbSet<Ticket> Tickets => Set<Ticket>();
+    public DbSet<AppUser> Users => Set<AppUser>();
+    public DbSet<TicketComment> TicketComments => Set<TicketComment>();
+
+    protected override void OnModelCreating(ModelBuilder b)
+    {
+        b.Entity<Ticket>().Property(t => t.Status).HasConversion<string>();
+        b.Entity<Ticket>().Property(t => t.Priority).HasConversion<string>();
+        b.Entity<AppUser>().Property(u => u.Role).HasConversion<string>();
+    }
+}
