@@ -13,9 +13,9 @@ public class AppDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder b)
     {
-        b.Entity<Ticket>().Property(t => t.Status).HasConversion<string>();
-        b.Entity<Ticket>().Property(t => t.Priority).HasConversion<string>();
-        b.Entity<AppUser>().Property(u => u.Role).HasConversion<string>();
+        b.Entity<Ticket>().Property(t => t.Status).HasConversion<string>().HasMaxLength(20);
+        b.Entity<Ticket>().Property(t => t.Priority).HasConversion<string>().HasMaxLength(20);
+        b.Entity<AppUser>().Property(u => u.Role).HasConversion<string>().HasMaxLength(20);
         b.Entity<AppUser>().HasData(
     new AppUser { Id = 1, Name = "Alex Requester", Role = UserRole.Requester },
     new AppUser { Id = 2, Name = "Sam Technician", Role = UserRole.Technician });
