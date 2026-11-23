@@ -41,6 +41,20 @@ namespace TicketTracker.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Users");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Name = "Alex Requester",
+                            Role = "Requester"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Name = "Sam Technician",
+                            Role = "Technician"
+                        });
                 });
 
             modelBuilder.Entity("TicketTracker.Models.Ticket", b =>

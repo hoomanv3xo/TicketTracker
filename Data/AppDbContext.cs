@@ -16,5 +16,8 @@ public class AppDbContext : DbContext
         b.Entity<Ticket>().Property(t => t.Status).HasConversion<string>();
         b.Entity<Ticket>().Property(t => t.Priority).HasConversion<string>();
         b.Entity<AppUser>().Property(u => u.Role).HasConversion<string>();
+        b.Entity<AppUser>().HasData(
+    new AppUser { Id = 1, Name = "Alex Requester", Role = UserRole.Requester },
+    new AppUser { Id = 2, Name = "Sam Technician", Role = UserRole.Technician });
     }
 }

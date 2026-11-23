@@ -30,7 +30,7 @@
         @foreach (var t in tickets)
         {
             <tr>
-                <td>@t.Title</td>
+                <td><a href="tickets/@t.Id">@t.Title</a></td>
                 <td>
                     <select class="form-select form-select-sm" value="@t.Status"
                             @onchange="e => ChangeStatusAsync(t.Id, e.Value?.ToString())">

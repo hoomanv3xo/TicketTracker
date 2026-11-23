@@ -1,0 +1,111 @@
+﻿@page "/tickets/{Id:int}"
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.EntityFrameworkCore
+@using TicketTracker.Data
+@inject IDbContextFactory<AppDbContext> Factory
+
+<PageTitle>Ticket @Id</PageTitle>
+
+<a href="tickets">&larr; Back to tickets</a>
+
+@if (!loaded)
+{
+    <p class="mt-3">Loading...</p>
+}
+else if (ticket is null)
+{
+    <p class="mt-3">Ticket not found.</p>
+}
+else
+{
+    <h3 class="mt-3">@ticket.Title</h3>
+    <p>
+        <span class="badge bg-secondary">@ticket.Status</span>
+        <span class="badge bg-info text-dark">@ticket.Priority</span>
+    </p>
+    <p>@ticket.Description</p>
+    <p class="text-muted small">Created @ticket.CreatedAt.ToString("yyyy-MM-dd HH:mm") UTC</p>
+
+    <h5 class="mt-4">Comments</h5>
+    @if (comments.Count == 0)
+    {
+        <p class="text-muted">No comments yet.</p>
+    }
+    @foreach (var c in comments)
+    {
+        <div class="border rounded p-2 mb-2">
+            <strong>@c.UserName</strong>
+            <span class="text-muted small">@c.CreatedAt.ToString("yyyy-MM-dd HH:mm") UTC</span>
+            <div>@c.Body</div>
+        </div>
+    }
+
+    <EditForm Model="form" OnValidSubmit="AddCommentAsync" class="mt-3">
+        <DataAnnotationsValidator />
+        <div class="mb-2">
+            <InputSelect class="form-select w-auto" @bind-Value="form.UserId">
+                @foreach (var u in users)
+                {
+                    <option value="@u.Id">@u.Name (@u.Role)</option>
+                }
+            </InputSelect>
+        </div>
+        <div class="mb-2">
+            <InputTextArea class="form-control" rows="3" @bind-Value="form.Body" />
+            <ValidationMessage For="() => form.Body" />
+        </div>
+        <button type="submit" class="btn btn-primary">Add comment</button>
+    </EditForm>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private Ticket? ticket;
+    private List<CommentRow> comments = new();
+    private List<AppUser> users = new();
+    private NewCommentModel form = new();
+    private bool loaded;
+
+    protected override async Task OnParametersSetAsync() => await LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        using var db = Factory.CreateDbContext();
+        ticket = await db.Tickets.FindAsync(Id);
+        users = await db.Users.OrderBy(u => u.Name).ToListAsync();
+        if (form.UserId == 0 && users.Count > 0) form.UserId = users[0].Id;
+
+        comments = await (
+            from c in db.TicketComments
+            where c.TicketId == Id
+            join u in db.Users on c.UserId equals u.Id
+            orderby c.CreatedAt
+            select new CommentRow(u.Name, c.Body, c.CreatedAt)).ToListAsync();
+
+        loaded = true;
+    }
+
+    private async Task AddCommentAsync()
+    {
+        using var db = Factory.CreateDbContext();
+        db.TicketComments.Add(new TicketComment
+        {
+            TicketId = Id,
+            UserId = form.UserId,
+            Body = form.Body
+        });
+        await db.SaveChangesAsync();
+        form.Body = "";
+        await LoadAsync();
+    }
+
+    private record CommentRow(string UserName, string Body, DateTime CreatedAt);
+
+    private class NewCommentModel
+    {
+        [Required(ErrorMessage = "Please enter a comment.")]
+        public string Body { get; set; } = "";
+        public int UserId { get; set; }
+    }
+}
