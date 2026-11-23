@@ -1,0 +1,51 @@
+﻿@page "/tickets/new"
+@using Microsoft.EntityFrameworkCore
+@using TicketTracker.Data
+@inject IDbContextFactory<AppDbContext> Factory
+@inject NavigationManager Nav
+
+<PageTitle>New ticket</PageTitle>
+<h3>New ticket</h3>
+<a class="btn btn-primary mb-3" href="tickets/new">New ticket</a>
+
+<EditForm Model="ticket" OnValidSubmit="SaveAsync">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label class="form-label">Title</label>
+        <InputText class="form-control" @bind-Value="ticket.Title" />
+        <ValidationMessage For="() => ticket.Title" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Description</label>
+        <InputTextArea class="form-control" rows="4" @bind-Value="ticket.Description" />
+        <ValidationMessage For="() => ticket.Description" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Priority</label>
+        <InputSelect class="form-select" @bind-Value="ticket.Priority">
+            @foreach (var p in Enum.GetValues<TicketPriority>())
+            {
+                <option value="@p">@p</option>
+            }
+        </InputSelect>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Create ticket</button>
+    <a class="btn btn-secondary" href="tickets">Cancel</a>
+</EditForm>
+
+@code {
+    private Ticket ticket = new();
+
+    private async Task SaveAsync()
+    {
+        using var db = Factory.CreateDbContext();
+        db.Tickets.Add(ticket);
+        await db.SaveChangesAsync();
+        Nav.NavigateTo("/tickets");
+    }
+}

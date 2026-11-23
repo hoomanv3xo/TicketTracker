@@ -6,7 +6,9 @@
 <PageTitle>Tickets</PageTitle>
 <h3>Tickets</h3>
 
-<select @bind="statusFilter" @bind:after="LoadAsync">
+<a class="btn btn-primary mb-3" href="tickets/new">New ticket</a>
+
+<select class="form-select w-auto mb-3" @bind="statusFilter" @bind:after="LoadAsync">
     <option value="">All</option>
     @foreach (var s in Enum.GetValues<TicketStatus>())
     {
@@ -16,16 +18,31 @@
 
 <table class="table">
     <thead>
-        <tr><th>Title</th><th>Status</th><th>Priority</th><th>Created</th></tr>
+        <tr>
+            <th>Title</th>
+            <th>Status</th>
+            <th>Priority</th>
+            <th>Created</th>
+            <th>Closed</th>
+        </tr>
     </thead>
     <tbody>
         @foreach (var t in tickets)
         {
             <tr>
                 <td>@t.Title</td>
-                <td>@t.Status</td>
+                <td>
+                    <select class="form-select form-select-sm" value="@t.Status"
+                            @onchange="e => ChangeStatusAsync(t.Id, e.Value?.ToString())">
+                        @foreach (var s in Enum.GetValues<TicketStatus>())
+                        {
+                            <option value="@s">@s</option>
+                        }
+                    </select>
+                </td>
                 <td>@t.Priority</td>
                 <td>@t.CreatedAt.ToString("yyyy-MM-dd")</td>
+                <td>@(t.ClosedAt?.ToString("yyyy-MM-dd HH:mm") ?? "-")</td>
             </tr>
         }
     </tbody>
@@ -44,5 +61,21 @@
         if (Enum.TryParse<TicketStatus>(statusFilter, out var s))
             query = query.Where(t => t.Status == s);
         tickets = await query.OrderByDescending(t => t.CreatedAt).ToListAsync();
+    }
+
+    private async Task ChangeStatusAsync(int id, string? value)
+    {
+        if (!Enum.TryParse<TicketStatus>(value, out var newStatus)) return;
+
+        using var db = Factory.CreateDbContext();
+        var ticket = await db.Tickets.FindAsync(id);
+        if (ticket is null) return;
+
+        ticket.Status = newStatus;
+        bool isClosed = newStatus is TicketStatus.Resolved or TicketStatus.Closed;
+        ticket.ClosedAt = isClosed ? (ticket.ClosedAt ?? DateTime.UtcNow) : null;
+
+        await db.SaveChangesAsync();
+        await LoadAsync();
     }
 }
