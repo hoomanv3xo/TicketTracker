@@ -1,0 +1,63 @@
+@page "/dashboard"
+@using Microsoft.EntityFrameworkCore
+@using TicketTracker.Data
+@inject IDbContextFactory<AppDbContext> Factory
+
+<PageTitle>Dashboard</PageTitle>
+<h3>Dashboard</h3>
+
+@if (stats is null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <div class="row g-3 mt-1">
+        <div class="col-md-3">
+            <div class="card text-center"><div class="card-body">
+                <div class="fs-2">@stats.TotalTickets</div>
+                <div class="text-muted">Total</div>
+            </div></div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center"><div class="card-body">
+                <div class="fs-2">@(stats.OpenTickets ?? 0)</div>
+                <div class="text-muted">Open</div>
+            </div></div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center"><div class="card-body">
+                <div class="fs-2">@(stats.InProgressTickets ?? 0)</div>
+                <div class="text-muted">In progress</div>
+            </div></div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center"><div class="card-body">
+                <div class="fs-2">@(stats.ClosedTickets ?? 0)</div>
+                <div class="text-muted">Resolved / closed</div>
+            </div></div>
+        </div>
+    </div>
+
+    <p class="mt-4">Average time to resolve: <strong>@FormatMinutes(stats.AvgMinutesToResolve)</strong></p>
+}
+
+@code {
+    private TicketStats? stats;
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var db = Factory.CreateDbContext();
+        var rows = await db.Database
+            .SqlQuery<TicketStats>($"EXEC dbo.usp_TicketStats")
+            .ToListAsync();
+        stats = rows.First();
+    }
+
+    private static string FormatMinutes(double? minutes)
+    {
+        if (minutes is null) return "-";
+        if (minutes < 60) return $"{minutes:0} min";
+        return $"{minutes / 60:0.0} h";
+    }
+}
