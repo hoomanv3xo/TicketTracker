@@ -15,4 +15,11 @@
     </PackageReference>
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="TicketTracker.Tests\**" />
+    <Content Remove="TicketTracker.Tests\**" />
+    <EmbeddedResource Remove="TicketTracker.Tests\**" />
+    <None Remove="TicketTracker.Tests\**" />
+  </ItemGroup>
+
 </Project>
