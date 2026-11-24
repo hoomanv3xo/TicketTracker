@@ -54,13 +54,14 @@
 
 # 
 
-# !\[Ticket list](docs/tickets.png)
+ ![Ticket list](docs/tickets.png)
 
 # !\[New ticket](docs/new-ticket.png)
 
 # !\[Ticket detail](docs/detail.png)
 
-# !\[Dashboard](docs/dashboard.png)
+ ![Dashboard](docs/dashboard.png)
+
 
 # !\[Tests](docs/tests.png)
 
