@@ -1,4 +1,4 @@
-# \# Ticket Tracker
+#  Ticket Tracker
 
 # 
 
@@ -6,7 +6,7 @@
 
 # 
 
-# \## Features
+# Features
 
 # 
 
@@ -24,7 +24,7 @@
 
 # 
 
-# \## Tech stack
+# Tech stack
 
 # 
 
